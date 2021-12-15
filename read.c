@@ -48,8 +48,11 @@ char *readFileToBuff(char *filename)
 }
 void readELFHeader(char *file)
 {
+    // 将文件加载到内存，将起始地址分分配给buff
     char *buff = readFileToBuff(file);
+    // ehdr 在开头处，所以将地址转成ehdr类型，可以直接用
     Elf64_Ehdr *ehdr = (Elf64_Ehdr *)buff;
+    //magic num 在ehdr开头处，所以将地址转成char *类型，可以直接用
     unsigned char *magic = (unsigned char *)buff;
     printf("%d", ehdr->e_machine);
     printf("ELF Header:\n");
@@ -197,11 +200,14 @@ void readELFHeader(char *file)
 }
 void readSections(char *file)
 {
+    // 将文件加载到内存，将起始地址分分配给buff
     char *buff = readFileToBuff(file);
     Elf64_Ehdr *ehdr = (Elf64_Ehdr *)buff;
     printf("%-20s%-20s%-20s%-20s%-20s%-20s%-20s%-20s%-20s%-20s", "Name", "Type", "Address", "Offset", "Size", "EntSize", "Flags", "Link", "Info", "Align");
     Elf64_Shdr *shdr = (Elf64_Shdr *)(buff + ehdr->e_shoff);
+    // 根据e_shstrndx找到str所在的sh,根据偏移sh_offset,找到shstrtab的起始地址
     char *shstrtab = buff + shdr[ehdr->e_shstrndx].sh_offset;
+    // 遍历sh 格式化输出
     for (int i = 0; i < ehdr->e_shnum; i++)
     {
         printf("%-20s", (shstrtab + shdr[i].sh_name));
@@ -322,9 +328,11 @@ void readSections(char *file)
 }
 void readSymbolTab(char *file)
 {
+    // 将文件加载到内存，将起始地址分分配给buff
     char *buff = readFileToBuff(file);
     Elf64_Ehdr *ehdr = (Elf64_Ehdr *)buff;
     Elf64_Shdr *shdr = (Elf64_Shdr *)(buff + ehdr->e_shoff);
+    // 根据e_shstrndx找到str所在的sh,根据偏移sh_offset,找到shstrtab的起始地址
     char *strtab = buff + shdr[ehdr->e_shstrndx].sh_offset;
 
     for (int i = 0; i < ehdr->e_shnum; i++)
@@ -338,6 +346,7 @@ void readSymbolTab(char *file)
             printf("%lx  ", shdr[i].sh_offset);
             printf("\n");
             printf("%-5s%-20s%-20s%-20s%-20s%-20s%-20s\n", "Num", "Value", "Size", "Type", "Bind", "Vis", "Name");
+            // 这里需要注意，SymbolTab的项目Name偏移量不是在e_shstrndx所指的tab中，而是sh_link的shdr中偏移量所指的strtab
             char *shstrtab = buff + shdr[shdr[i].sh_link].sh_offset;
             Elf64_Sym *sym = (Elf64_Sym *)(buff + shdr[i].sh_offset);
             for (int j = 0; j < shdr[i].sh_size / shdr[i].sh_entsize; j++)
@@ -514,8 +523,5 @@ int main(int argc, char *argv[])
             break;
         }
     }
-    // readELFHeader();
-    // readSections();
-    // readSymbolTab();
     return 0;
 }
