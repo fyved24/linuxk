@@ -10,7 +10,7 @@ char buf[BUFFSIZE];
 
 int argc = 0;
 char *argv[CMD_MAX_ARGV_NUM];
-
+// 获取参数
 void input()
 {
     argc = 0;
@@ -32,6 +32,7 @@ void input()
             {
                 argv_liat[argc][j + 1] = '\0';
                 j = 0;
+                // 将每一个参数所在的字符串地址，赋值给argv数组
                 argv[argc] = argv_liat[argc];
                 argc++;
             }
@@ -49,6 +50,7 @@ int main()
     {
         printf("->");
         input();
+        // 如果是 exit 就退出
         if(strcmp(argv[0], "exit") == 0) {
             return 0;
         }
