@@ -65,6 +65,26 @@ static void print_process_tree(struct task_struct *p, unsigned int level)
 		print_process_tree(t, level + 1);
 	}
 }
+/**
+ * @brief 
+ * 
+ * @return int 
+ */
+unsigned long *get_sys_call_table_addr()
+{
+	unsigned long *p;
+	unsigned long int cr0;
+	cr0 = clear_and_return_cr0();
+	for (p = (unsigned long *)0; p < (unsigned long *)((unsigned long)0xffffffff); p++)
+	{
+		if (p[0] == (unsigned long)sys_mycall)
+		{
+			break;
+		}
+	}
+	backset_cr0(cr0);
+	return p;
+}
 
 static int print_pid(void)
 
@@ -79,7 +99,9 @@ static int print_pid(void)
 static int __init add_syscall_init(void)
 {
 	printk("load plist module\n");
-	sys_call_table = (unsigned long *)kallsyms_lookup_name("sys_call_table"); /* 获取系统调用服务首地址 */
+	sys_call_table = get_sys_call_table_addr(); /* 获取系统调用服务首地址 */
+	// sys_call_table = (unsigned long *)kallsyms_lookup_name("sys_call_table"); /* 获取系统调用服务首地址 */
+
 	printk("sys_call_table: 0x%p\n", sys_call_table);
 	anything_saved = (int (*)(void))(sys_call_table[__NR_syscall]); /* 保存原始系统调用 */
 	orig_cr0 = clear_and_return_cr0();								/* 设置cr0可更改 */
