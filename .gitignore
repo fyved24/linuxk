@@ -1,2 +1,7 @@
 csh
 /.vscode
+.DS_Store
+syscalltest.out
+*.d
+*.o
+
